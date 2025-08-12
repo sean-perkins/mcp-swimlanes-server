@@ -1,0 +1,231 @@
+{
+  "openapi" : "3.0.0",
+  "info" : {
+    "title" : "api.swimlanes.io/v1",
+    "description" :
+      "API to generate [swimlanes.io](https://swimlanes.io) diagrams and images.
+      \n\n
+      Syntax overview at: https://swimlanes.io/gallery/full-syntax
+      ",
+  },
+  "servers" :
+    [{
+      "url" : "https://api.swimlanes.io/v1"
+    }]
+  ,
+
+  "tags" : [
+    {
+      "name" : "Diagrams",
+      "description" : "Generate a swimlanes.io diagram for sharing and further editing."
+    },
+    {
+      "name" : "Images",
+      "description" : "Generate a png image, get either the binary or a link to a hosted image."
+    }
+  ],
+
+  "paths" : {
+
+    "/link" : {
+      "post" : {
+        "operationId" : "Generate a diagram",
+        "tags": ["Diagrams"],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "required" : [ "text" ],
+                "properties" : {
+                  "text" : {
+                    "type" : "string",
+                    "description" : "The content of the diagram. Note that each line have to be separated with `\\n`",
+                    "example" : "title: Simple example \\n A -> B: Hello"
+                  }
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "x-code-samples": [
+          {
+            "lang": "Shell",
+            "source": "curl -i -d '{\"text\": \"title: Simple example \\n A -> B: Hello\"}' -H \"Content-Type: application/json\" https://api.swimlanes.io/v1/link | grep Location\n\n\n"
+          },
+          {
+            "lang": "JavaScript",
+            "source":
+              "const request = require('request');
+              \n
+              \nrequest({
+              \n  url: 'https://api.swimlanes.io/v1/link',
+              \n  method: 'POST',
+              \n  json: {
+              \n    text: 'title: Simple example \\n A -> B: Hello'
+              \n  }
+              \n}, (error, response, body) => {
+              \n  console.log(response.headers.location);
+              \n})
+              \n\n"
+          }
+        ],
+        "responses" : {
+          "201" : {
+            "description" : "Link to the generated diagram",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "example": "https://swimlanes.io/#K8ksyUm1UgjOzC3ISVVIrUgE01yOCrp2Ck5WCh6pOTn5AA=="
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad request."
+          }
+        }
+      }
+    },
+    "/image" : {
+      "post" : {
+        "tags" : [ "Images" ],
+        "description" :
+          "
+            This resourse will respond with a `303` with a `Location` pointing to the generated image for downloading.
+            Make sure you configure your client to follow redirects.
+            \n\n
+            If you are using curl add the `-L` option to follow the redirect and do **not** use `-X POST`
+          ",
+        "operationId" : "Download image",
+        "requestBody" : {
+          "content" : {
+            "application/json": {
+              "schema" : {
+                "$ref" : "#/components/schemas/body"
+              }
+            }
+          },
+          "required" : true
+        },
+        "x-code-samples": [
+          {
+            "lang": "Shell",
+            "source": "curl -d '{\"text\": \"title: Simple example \\n A -> B: Hello\"}' -H \"Content-Type: application/json\"
+            https://api.swimlanes.io/v1/image -L > diagram.png\n\n\n"
+          },
+          {
+            "lang": "JavaScript",
+            "source":
+              "const request = require('request');
+              \nconst fs = require('fs');
+              \n
+              \nrequest({
+              \n  url: 'https://api.swimlanes.io/v1/image',
+              \n  method: 'POST',
+              \n  json: {
+              \n    text: 'title: Simple example \\n A -> B: Hello'
+              \n  }
+              \n}).pipe(fs.createWriteStream('diagram.png'));
+              \n\n"
+          }
+        ],
+        "responses" : {
+          "303" : {
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "example": "https://static.swimlanes.io/download/245dc383c74bdedc7acf20a21e2d097e.png"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad request."
+          },
+          "504" : {
+            "description" : "Timeout, try agan."
+          }
+        }
+      }
+    },
+
+    "/image-link" : {
+      "post" : {
+        "tags" : [ "Images" ],
+        "operationId" : "Generate image link",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/body"
+              }
+            }
+          },
+          "required" : true
+        },
+        "x-code-samples": [
+          {
+            "lang": "Shell",
+            "source": "curl -i -d '{\"text\": \"title: Simple example \\n A -> B: Hello\"}' -H \"Content-Type: application/json\" https://api.swimlanes.io/v1/image-link | grep Location\n\n\n"
+          },
+          {
+            "lang": "JavaScript",
+            "source":
+              "const request = require('request');
+              \n
+              \nrequest({
+              \n  url: 'https://api.swimlanes.io/v1/image-link',
+              \n  method: 'POST',
+              \n  json: {
+              \n    text: 'title: Simple example \\n A -> B: Hello'
+              \n  }
+              \n}, (error, response, body) => {
+              \n  console.log(response.headers.location);
+              \n})
+              \n\n"
+          }
+        ],
+        "responses" : {
+          "201" : {
+            "description" : "Link to the generated image",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "example": "https://static.swimlanes.io/beab54f136e764c201341b2ed3c10e81.png"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad request."
+          },
+          "504" : {
+            "description" : "Timeout, try agan."
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "body" : {
+        "required" : [ "text" ],
+        "properties" : {
+          "text" : {
+            "type" : "string",
+            "description" : "The content of the diagram. Note that each line have to be separated with `\\n`",
+            "example" : "title: Simple example \\n A -> B: Hello"
+          },
+          "high_resolution" : {
+            "type" : "boolean",
+            "description" : "If set to `true` the generated image is doubled in size, recommended for printing."
+          }
+        }
+      }
+    }
+  }
+}
